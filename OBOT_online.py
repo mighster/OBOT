@@ -38,14 +38,19 @@ MASTER_PLAYER_LIST = [
     {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defenccmde'},
 ]
 
-# --- FORMATTING FUNCTION (Unchanged) ---
+# --- FORMATTING FUNCTION (*** MODIFIED ***) ---
 def format_team_output(team_name, team_list, team_skill):
+    """
+    Helper function to create a nicely formatted string for the output.
+    MODIFIED: 
+    1. Removed Total Skill and Avg Skill lines.
+    2. Sorts by Position, then alphabetically by Name.
+    """
     output = f"--- {team_name} ---\n"
-    output += f"Total Players: {len(team_list)}\n"
-    output += f"Total Skill: {team_skill}\n"
-    output += f"Avg Skill: {team_skill / len(team_list) if team_list else 0:.2f}\n\n"
+    output += f"Total Players: {len(team_list)}\n\n" # Removed skill lines, added \n
     
-    team_list.sort(key=lambda p: p['pos'])
+    # Sort by position, then alphabetically by name to mask skill
+    team_list.sort(key=lambda p: (p['pos'], p['name']))
     
     for player in team_list:
         pos_letter = player['pos'][0]  
@@ -102,12 +107,14 @@ def generate_balanced_teams(present_players):
             team_B.append(player)
             team_B_skill += player['skill']
             
+    # The team_skill variables are still passed here, but the 
+    # format_team_output function just ignores them now.
     output_A = format_team_output("TEAM A (WHITE)", team_A, team_A_skill)
     output_B = format_team_output("TEAM B (DARK)", team_B, team_B_skill)
     
     return output_A + output_B
 
-# --- STREAMLIT WEB APP UI ---
+# --- STREAMLIT WEB APP UI (Unchanged) ---
 
 # Set page to be wide
 st.set_page_config(layout="wide")
