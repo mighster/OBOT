@@ -5,24 +5,24 @@ import math
 MASTER_PLAYER_LIST = [
     {'name': 'Dave Snell',       'skill': 9, 'pos': 'Forward'},
     {'name': 'Hartley Krulicki', 'skill': 8, 'pos': 'Forward'},
-    {'name': 'Martin Windus',    'skill': 7, 'pos': 'Forward'},
+    {'name': 'Martin Windus',    'skill': 8, 'pos': 'Defence'},
     {'name': 'Mike Mancer',      'skill': 7, 'pos': 'Forward'},
-    {'name': 'Dean Lewko',       'skill': 6, 'pos': 'Forward'},
-    {'name': 'Brent Sadler',     'skill': 6, 'pos': 'Forward'},
+    {'name': 'Dean Lewko',       'skill': 7, 'pos': 'Forward'},
+    {'name': 'Brent Sadler',     'skill': 6, 'pos': 'Defence'},
     {'name': 'Perry Buydens',    'skill': 6, 'pos': 'Forward'},
     {'name': 'Michael Douglas',  'skill': 6, 'pos': 'Forward'},
-    {'name': 'Travis Bosch',     'skill': 6, 'pos': 'Forward'},
-    {'name': 'Jody Windsor',     'skill': 5, 'pos': 'Forward'},
-    {'name': 'Trevor Boulanger', 'skill': 5, 'pos': 'Defence'},
+    {'name': 'Travis Bosch',     'skill': 7, 'pos': 'Forward'},
+    {'name': 'Jody Windsor',     'skill': 4, 'pos': 'Forward'},
+    {'name': 'Trevor Boulanger', 'skill': 4, 'pos': 'Defence'},
     {'name': 'Alex Hammond',     'skill': 5, 'pos': 'Forward'},
-    {'name': 'Trevor Boulet',    'skill': 5, 'pos': 'Defence'},
-    {'name': 'Max Paganelli',    'skill': 5, 'pos': 'Forward'},
+    {'name': 'Trevor Boulet',    'skill': 4, 'pos': 'Defence'},
+    {'name': 'Max Paganelli',    'skill': 4, 'pos': 'Forward'},
     {'name': 'Derek East',       'skill': 5, 'pos': 'Forward'},
     {'name': 'Bryan Reimer',     'skill': 5, 'pos': 'Forward'},
     {'name': 'Tyler Nobiss',     'skill': 5, 'pos': 'Forward'},
     {'name': 'Brent Metcalfe',   'skill': 4, 'pos': 'Forward'},
-    {'name': 'Brian Fehr',       'skill': 4, 'pos': 'Defence'},
-    {'name': 'Clayton Wood',     'skill': 4, 'pos': 'Defence'},
+    {'name': 'Brian Fehr',       'skill': 5, 'pos': 'Defence'},
+    {'name': 'Clayton Wood',     'skill': 3, 'pos': 'Defence'},
     {'name': 'Rob Mirrlees',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Ryan Mackie',      'skill': 4, 'pos': 'Forward'},
     {'name': 'Stephen Barlow',   'skill': 4, 'pos': 'Defence'},
@@ -32,10 +32,11 @@ MASTER_PLAYER_LIST = [
     {'name': 'Corey Bossuyt',    'skill': 2, 'pos': 'Defence'},
     {'name': 'Mark Kaminsky',    'skill': 2, 'pos': 'Forward'},
     {'name': 'Bretton Eisner',   'skill': 2, 'pos': 'Forward'},
-    {'name': 'Scot Snow',        'skill': 2, 'pos': 'Defence'},
+    {'name': 'Scot Snow',        'skill': 2, 'pos': 'Forward'},
     {'name': 'Kevin Anseeuw',    'skill': 2, 'pos': 'Forward'},
-    {'name': 'Syl Precourt',     'skill': 1, 'pos': 'Defence'},
-    {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defenccmde'},
+    {'name': 'Syl Precourt',     'skill': 1, 'pos': 'Forward'},
+    {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Forward'},
+    {'name': 'Matt Brykaliuk',   'skill': 6, 'pos': 'Forward'}
 ]
 
 # --- FORMATTING FUNCTION (*** MODIFIED ***) ---
@@ -189,4 +190,5 @@ if st.button("Generate Teams", type="primary", use_container_width=True):
             team_output = f"An error occurred: {e}"
 
     # Display the output in a text box
+
     st.text(team_output)
