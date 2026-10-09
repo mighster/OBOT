@@ -1,14 +1,14 @@
 import streamlit as st
 import math
 
-# --- YOUR MASTER PLAYER ROSTER (Unchanged) ---
+# --- YOUR MASTER PLAYER ROSTER (2026-2027) ---
 MASTER_PLAYER_LIST = [
     {'name': 'Dave Snell',       'skill': 9, 'pos': 'Forward'},
     {'name': 'Hartley Krulicki', 'skill': 8, 'pos': 'Forward'},
-    {'name': 'Martin Windus',    'skill': 8, 'pos': 'Defence'},
+    {'name': 'Martin Windus',    'skill': 7, 'pos': 'Defence'},
     {'name': 'Mike Mancer',      'skill': 7, 'pos': 'Forward'},
-    {'name': 'Dean Lewko',       'skill': 7, 'pos': 'Forward'},
-    {'name': 'Brent Sadler',     'skill': 6, 'pos': 'Defence'},
+    {'name': 'Dean Lewko',       'skill': 6, 'pos': 'Forward'},
+    {'name': 'Brent Sadler',     'skill': 5, 'pos': 'Defence'},
     {'name': 'Perry Buydens',    'skill': 6, 'pos': 'Forward'},
     {'name': 'Michael Douglas',  'skill': 6, 'pos': 'Forward'},
     {'name': 'Travis Bosch',     'skill': 7, 'pos': 'Forward'},
@@ -16,29 +16,25 @@ MASTER_PLAYER_LIST = [
     {'name': 'Trevor Boulanger', 'skill': 4, 'pos': 'Defence'},
     {'name': 'Alex Hammond',     'skill': 5, 'pos': 'Forward'},
     {'name': 'Trevor Boulet',    'skill': 4, 'pos': 'Defence'},
-    {'name': 'Max Paganelli',    'skill': 4, 'pos': 'Forward'},
+    {'name': 'Max Paganelli',    'skill': 5, 'pos': 'Forward'},
     {'name': 'Derek East',       'skill': 5, 'pos': 'Forward'},
-    {'name': 'Bryan Reimer',     'skill': 5, 'pos': 'Forward'},
-    {'name': 'Tyler Nobiss',     'skill': 5, 'pos': 'Forward'},
+    {'name': 'Bryan Reimer',     'skill': 4, 'pos': 'Forward'},
+    {'name': 'Tyler Nobiss',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Brent Metcalfe',   'skill': 4, 'pos': 'Forward'},
-    {'name': 'Brian Fehr',       'skill': 5, 'pos': 'Defence'},
-    {'name': 'Clayton Wood',     'skill': 3, 'pos': 'Defence'},
+    {'name': 'Brian Fehr',       'skill': 4, 'pos': 'Defence'},
+    {'name': 'Clayton Wood',     'skill': 4, 'pos': 'Defence'},
     {'name': 'Rob Mirrlees',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Ryan Mackie',      'skill': 4, 'pos': 'Forward'},
     {'name': 'Stephen Barlow',   'skill': 4, 'pos': 'Defence'},
-    {'name': 'Rob Fleming',      'skill': 4, 'pos': 'Forward'},
-    {'name': 'Tanner Dueck',     'skill': 3, 'pos': 'Forward'},
-    {'name': 'Colton Bossuyt',   'skill': 3, 'pos': 'Defence'},
-    {'name': 'Corey Bossuyt',    'skill': 2, 'pos': 'Defence'},
-    {'name': 'Mark Kaminsky',    'skill': 2, 'pos': 'Forward'},
-    {'name': 'Bretton Eisner',   'skill': 2, 'pos': 'Forward'},
-    {'name': 'Scot Snow',        'skill': 2, 'pos': 'Forward'},
-    {'name': 'Kevin Anseeuw',    'skill': 2, 'pos': 'Forward'},
-    {'name': 'Syl Precourt',     'skill': 1, 'pos': 'Forward'},
-    {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Forward'},
-    {'name': 'Matt Brykaliuk',   'skill': 6, 'pos': 'Forward'}
+    {'name': 'Tanner Dueck',     'skill': 4, 'pos': 'Forward'},
+    {'name': 'Colton Bossuyt',   'skill': 4, 'pos': 'Defence'},
+    {'name': 'Mark Kaminsky',    'skill': 2, 'pos': 'Defence'},
+    {'name': 'Bretton Eisner',   'skill': 4, 'pos': 'Forward'},
+    {'name': 'Scot Snow',        'skill': 2, 'pos': 'Defence'},
+    {'name': 'Brad Olinyk',      'skill': 3, 'pos': 'Forward'},
+    {'name': 'Steve McFarlane',  'skill': 8, 'pos': 'Forward'},
+    {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defence'},
 ]
-
 # --- FORMATTING FUNCTION (*** MODIFIED ***) ---
 def format_team_output(team_name, team_list, team_skill):
     """
