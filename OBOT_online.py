@@ -11,6 +11,7 @@ MASTER_PLAYER_LIST = [
     {'name': 'Brent Sadler',     'skill': 5, 'pos': 'Defence'},
     {'name': 'Perry Buydens',    'skill': 6, 'pos': 'Forward'},
     {'name': 'Michael Douglas',  'skill': 6, 'pos': 'Forward'},
+    {'name': 'Matt Brykaliuk',   'skill': 6, 'pos': 'Forward'},
     {'name': 'Travis Bosch',     'skill': 7, 'pos': 'Forward'},
     {'name': 'Jody Windsor',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Trevor Boulanger', 'skill': 4, 'pos': 'Defence'},
