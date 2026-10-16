@@ -17,17 +17,17 @@ MASTER_PLAYER_LIST = [
     {'name': 'Trevor Boulanger', 'skill': 4, 'pos': 'Defence'},
     {'name': 'Alex Hammond',     'skill': 5, 'pos': 'Forward'},
     {'name': 'Trevor Boulet',    'skill': 4, 'pos': 'Defence'},
-    {'name': 'Max Paganelli',    'skill': 5, 'pos': 'Forward'},
+    {'name': 'Max Paganelli',    'skill': 4, 'pos': 'Forward'},
     {'name': 'Derek East',       'skill': 5, 'pos': 'Forward'},
     {'name': 'Bryan Reimer',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Tyler Nobiss',     'skill': 4, 'pos': 'Forward'},
     {'name': 'Brent Metcalfe',   'skill': 4, 'pos': 'Forward'},
     {'name': 'Brian Fehr',       'skill': 4, 'pos': 'Defence'},
     {'name': 'Clayton Wood',     'skill': 4, 'pos': 'Defence'},
-    {'name': 'Rob Mirrlees',     'skill': 4, 'pos': 'Forward'},
+    {'name': 'Rob Mirrlees',     'skill': 3, 'pos': 'Forward'},
     {'name': 'Ryan Mackie',      'skill': 4, 'pos': 'Forward'},
     {'name': 'Stephen Barlow',   'skill': 4, 'pos': 'Defence'},
-    {'name': 'Tanner Dueck',     'skill': 4, 'pos': 'Forward'},
+    {'name': 'Tanner Dueck',     'skill': 3, 'pos': 'Forward'},
     {'name': 'Colton Bossuyt',   'skill': 4, 'pos': 'Defence'},
     {'name': 'Mark Kaminsky',    'skill': 2, 'pos': 'Defence'},
     {'name': 'Bretton Eisner',   'skill': 4, 'pos': 'Forward'},
@@ -35,6 +35,9 @@ MASTER_PLAYER_LIST = [
     {'name': 'Brad Olinyk',      'skill': 3, 'pos': 'Forward'},
     {'name': 'Steve McFarlane',  'skill': 8, 'pos': 'Forward'},
     {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defence'},
+    {'name': 'Kevin Falk',      'skill': 1, 'pos': 'Goalie'},
+    {'name': 'Donnie McLean',     'skill': 1, 'pos': 'Goalie'},
+    {'name': 'Chris Saley',      'skill': 1, 'pos': 'Goalie'}
 ]
 
 # --- KEEP-TOGETHER PAIRS ---
