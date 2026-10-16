@@ -1,5 +1,6 @@
 import streamlit as st
 import math
+import urllib.parse
 
 # --- YOUR MASTER PLAYER ROSTER (2026-2027) ---
 MASTER_PLAYER_LIST = [
@@ -35,131 +36,166 @@ MASTER_PLAYER_LIST = [
     {'name': 'Brad Olinyk',      'skill': 3, 'pos': 'Forward'},
     {'name': 'Steve McFarlane',  'skill': 8, 'pos': 'Forward'},
     {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defence'},
-    {'name': 'Kevin Falk',      'skill': 1, 'pos': 'Goalie'},
-    {'name': 'Donnie McLean',     'skill': 1, 'pos': 'Goalie'},
+    {'name': 'Kevin Falk',       'skill': 1, 'pos': 'Goalie'},
+    {'name': 'Donnie McLean',    'skill': 1, 'pos': 'Goalie'},
     {'name': 'Chris Saley',      'skill': 1, 'pos': 'Goalie'}
 ]
 
 # --- KEEP-TOGETHER PAIRS ---
-# Players listed here always land on the same team when both are present.
-# Add more tuples as needed, e.g. ('John Doe', 'Jane Doe').
 KEEP_TOGETHER_PAIRS = [
     ('Dave Snell', 'Wayne Ellis'),
 ]
 
-# --- FORMATTING FUNCTION (*** MODIFIED ***) ---
-def format_team_output(team_name, team_list, team_skill):
+# --- FORMATTING FUNCTION ---
+def format_team_output(team_name, team_list):
     """
-    Helper function to create a nicely formatted string for the output.
-    MODIFIED:
-    1. Removed Total Skill and Avg Skill lines.
-    2. Sorts by Position, then alphabetically by Name.
+    Creates formatted text output for a team.
+    Sorts by Position (Goalie -> Defence -> Forward), then Name.
     """
     output = f"--- {team_name} ---\n"
-    output += f"Total Players: {len(team_list)}\n\n" # Removed skill lines, added \n
+    output += f"Total Players: {len(team_list)}\n\n"
 
-    # Sort by position, then alphabetically by name to mask skill
-    team_list.sort(key=lambda p: (p['pos'], p['name']))
+    # Define custom position order
+    pos_order = {'Goalie': 0, 'Defence': 1, 'Forward': 2}
+    
+    # Sort by custom position order, then alphabetically by name
+    sorted_team = sorted(team_list, key=lambda p: (pos_order.get(p['pos'], 3), p['name']))
 
-    for player in team_list:
+    for player in sorted_team:
         pos_letter = player['pos'][0]
         output += f"  - {player['name']} ({pos_letter})\n"
     return output + "\n"
 
-# --- BALANCING FUNCTION (*** MODIFIED ***) ---
+# --- BALANCING FUNCTION ---
 def generate_balanced_teams(present_players):
-    """
-    MODIFIED:
-    1. Nobody is ever cut. Odd turnout means one team carries the extra man.
-    2. KEEP_TOGETHER_PAIRS are locked onto the same team before the draft.
-    3. Swap pass at the end tightens the skill gap without splitting pairs.
-    """
-    players = list(present_players)
-    by_name = {p['name']: p for p in players}
+    by_name = {p['name']: p for p in present_players}
 
     team_A = []
     team_B = []
-    locked = set()  # keep-together players: placed first, never swapped
-    remaining = list(players)
+    locked = set()
+    remaining = list(present_players)
 
-    # Lock keep-together pairs onto Team A
+    # 1. Goalies (1 per team, split evenly based on present goalies)
+    goalies = [p for p in remaining if p['pos'] == 'Goalie']
+    for i, g in enumerate(goalies):
+        if i % 2 == 0:
+            team_A.append(g)
+        else:
+            team_B.append(g)
+        remaining.remove(g)
+
+    # 2. Lock Keep-Together Pairs (Alternate target teams A/B across pairs)
+    pair_target_team = 'A'
     for a, b in KEEP_TOGETHER_PAIRS:
         if a in by_name and b in by_name:
-            for p in (by_name[a], by_name[b]):
-                team_A.append(p)
-                remaining.remove(p)
-                locked.add(p['name'])
+            p1, p2 = by_name[a], by_name[b]
+            target_list = team_A if pair_target_team == 'A' else team_B
+            
+            for p in (p1, p2):
+                if p in remaining:
+                    target_list.append(p)
+                    remaining.remove(p)
+                    locked.add(p['name'])
+            
+            pair_target_team = 'B' if pair_target_team == 'A' else 'A'
 
-    # Even counts, or off by exactly one when turnout is odd. Nobody sits.
-    n = len(players)
-    target_A = max(n // 2, len(team_A))
-    target_B = n - target_A
+    # Target roster split for remaining skaters
+    n_skaters = len(remaining)
+    target_A_count = max(n_skaters // 2, len([p for p in team_A if p['pos'] != 'Goalie']))
+    target_B_count = n_skaters - target_A_count
 
     def team_skill(t):
-        return sum(q['skill'] for q in t)
+        return sum(p['skill'] for p in t)
 
-    # Greedy draft: best remaining player goes to the lower-skill team
-    for p in sorted(remaining, key=lambda p: p['skill'], reverse=True):
-        if len(team_A) < target_A and len(team_B) < target_B:
-            if team_skill(team_A) <= team_skill(team_B):
-                team_A.append(p)
+    def count_pos(t, pos):
+        return sum(1 for p in t if p['pos'] == pos)
+
+    # 3. Greedy Draft with Positional Balancing
+    skaters = sorted(remaining, key=lambda p: p['skill'], reverse=True)
+    
+    for p in skaters:
+        skaters_A = len([x for x in team_A if x['pos'] != 'Goalie'])
+        skaters_B = len([x for x in team_B if x['pos'] != 'Goalie'])
+
+        if skaters_A < target_A_count and skaters_B < target_B_count:
+            # If position imbalance is high, prioritize position over pure skill
+            def_A, def_B = count_pos(team_A, 'Defence'), count_pos(team_B, 'Defence')
+            
+            if p['pos'] == 'Defence' and def_A != def_B:
+                if def_A < def_B:
+                    team_A.append(p)
+                else:
+                    team_B.append(p)
             else:
-                team_B.append(p)
-        elif len(team_A) < target_A:
+                # Fallback to lower overall skill team
+                if team_skill(team_A) <= team_skill(team_B):
+                    team_A.append(p)
+                else:
+                    team_B.append(p)
+        elif skaters_A < target_A_count:
             team_A.append(p)
         else:
             team_B.append(p)
 
-    # Swap pass: trade unlocked players between teams while it tightens skill
+    # 4. Swap Pass (Optimizes Skill & Maintains Defence Balance)
     improved = True
     while improved:
         improved = False
         best = None
         cur_diff = abs(team_skill(team_A) - team_skill(team_B))
+        cur_def_diff = abs(count_pos(team_A, 'Defence') - count_pos(team_B, 'Defence'))
+
         for i, pa in enumerate(team_A):
-            if pa['name'] in locked:
+            if pa['name'] in locked or pa['pos'] == 'Goalie':
                 continue
             for j, pb in enumerate(team_B):
-                if pb['name'] in locked:
+                if pb['name'] in locked or pb['pos'] == 'Goalie':
                     continue
-                new_diff = abs((team_skill(team_A) - pa['skill'] + pb['skill']) -
-                               (team_skill(team_B) - pb['skill'] + pa['skill']))
-                if new_diff < cur_diff and (best is None or new_diff < best[0]):
-                    best = (new_diff, i, j)
+
+                # Calculate new skill difference after swap
+                new_skill_A = team_skill(team_A) - pa['skill'] + pb['skill']
+                new_skill_B = team_skill(team_B) - pb['skill'] + pa['skill']
+                new_diff = abs(new_skill_A - new_skill_B)
+
+                # Calculate new Defence difference after swap
+                def_A_swap = count_pos(team_A, 'Defence') - (1 if pa['pos'] == 'Defence' else 0) + (1 if pb['pos'] == 'Defence' else 0)
+                def_B_swap = count_pos(team_B, 'Defence') - (1 if pb['pos'] == 'Defence' else 0) + (1 if pa['pos'] == 'Defence' else 0)
+                new_def_diff = abs(def_A_swap - def_B_swap)
+
+                # Only swap if skill improves and Defence balance is preserved or improved
+                if new_def_diff <= cur_def_diff and new_diff < cur_diff:
+                    if best is None or new_diff < best[0]:
+                        best = (new_diff, i, j)
+
         if best:
             _, i, j = best
             team_A[i], team_B[j] = team_B[j], team_A[i]
             improved = True
 
-    # The team_skill variables are still passed here, but the
-    # format_team_output function just ignores them now.
-    output_A = format_team_output("TEAM A (WHITE)", team_A, team_skill(team_A))
-    output_B = format_team_output("TEAM B (DARK)", team_B, team_skill(team_B))
+    output_A = format_team_output("TEAM A (WHITE)", team_A)
+    output_B = format_team_output("TEAM B (DARK)", team_B)
 
     return output_A + output_B
 
-# --- STREAMLIT WEB APP UI (Unchanged) ---
+# --- STREAMLIT WEB APP UI ---
 
-# Set page to be wide
 st.set_page_config(layout="wide")
-
 st.title("🏒 OBOT Team Builder")
 
-# This dictionary will hold the state of the checkboxes
 player_vars = {}
-
-# Sort master list alphabetically for the GUI
 player_list_sorted = sorted(MASTER_PLAYER_LIST, key=lambda p: p['name'])
 
 # --- Select/Deselect All Buttons ---
 col1, col2, col3_spacer = st.columns([1, 1, 5])
 if col1.button("Select All"):
     for player in player_list_sorted:
-        st.session_state[player['name']] = True # Use session_state to store selections
+        st.session_state[player['name']] = True
+    st.rerun()
 
 if col2.button("Deselect All"):
     for player in player_list_sorted:
         st.session_state[player['name']] = False
+    st.rerun()
 
 st.header("Select Players Present:", divider="grey")
 
@@ -169,17 +205,13 @@ num_per_col = math.ceil(num_players / 3)
 
 col1, col2, col3 = st.columns(3)
 
-# Populate the columns with checkboxes
 for i, player in enumerate(player_list_sorted):
-    # Get first letter of position
     pos_letter = player['pos'][0]
     label = f"{player['name']} ({pos_letter})"
 
-    # Use st.session_state to make selections "stick"
     if player['name'] not in st.session_state:
         st.session_state[player['name']] = False
 
-    # Place in 3-column grid
     if i < num_per_col:
         player_vars[player['name']] = col1.checkbox(label, key=player['name'])
     elif i < num_per_col * 2:
@@ -193,25 +225,30 @@ st.divider()
 if st.button("Generate Teams", type="primary", use_container_width=True):
     present_players = []
 
-    # Find which checkboxes are ticked from the state
     for player_name, var_is_checked in player_vars.items():
         if var_is_checked:
-            # Find the full player-dict from the master list
             for master_player in MASTER_PLAYER_LIST:
                 if master_player['name'] == player_name:
                     present_players.append(master_player)
                     break
 
     if not present_players:
-        team_output = "No players selected."
+        st.warning("No players selected.")
     elif len(present_players) < 2:
-        team_output = "Not enough players to make two teams."
+        st.warning("Not enough players to make two teams.")
     else:
         try:
             team_output = generate_balanced_teams(present_players)
+            
+            st.text_area("Generated Teams:", value=team_output, height=350)
+
+            # --- Export Options ---
+            st.subheader("📲 Export Teams")
+            
+            # 1. SMS / iMessage Direct Link
+            encoded_text = urllib.parse.quote(team_output)
+            sms_href = f"sms:?&body={encoded_text}"
+            st.markdown(f'<a href="{sms_href}" target="_blank"><button style="padding: 10px 20px; font-size:16px; cursor:pointer;">📱 Send Teams via SMS / iMessage</button></a>', unsafe_allow_html=True)
+
         except Exception as e:
-            team_output = f"An error occurred: {e}"
-
-    # Display the output in a text box
-
-    st.text(team_output)
+            st.error(f"An error occurred: {e}")
