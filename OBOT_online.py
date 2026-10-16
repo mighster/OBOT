@@ -172,8 +172,8 @@ def generate_balanced_teams(present_players):
             team_A[i], team_B[j] = team_B[j], team_A[i]
             improved = True
 
-    output_A = format_team_output("TEAM A (WHITE)", team_A)
-    output_B = format_team_output("TEAM B (DARK)", team_B)
+    output_A = format_team_output("TEAM A (YELLOW)", team_A)
+    output_B = format_team_output("TEAM B (BLACK)", team_B)
 
     return output_A + output_B
 
