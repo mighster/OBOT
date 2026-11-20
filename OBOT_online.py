@@ -63,8 +63,7 @@ def format_team_output(team_name, team_list):
     sorted_team = sorted(team_list, key=lambda p: (pos_order.get(p['pos'], 3), p['name']))
 
     for player in sorted_team:
-        pos_letter = player['pos'][0]
-        output += f"  - {player['name']} ({pos_letter})\n"
+        output += f"  - {player['name']}\n"
     return output + "\n"
 
 # --- BALANCING FUNCTION ---
