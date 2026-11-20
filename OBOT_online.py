@@ -183,7 +183,8 @@ st.set_page_config(layout="wide")
 st.title("🏒 OBOT Team Builder")
 
 player_vars = {}
-player_list_sorted = sorted(MASTER_PLAYER_LIST, key=lambda p: p['name'])
+# Sort skaters alphabetically first, followed by goalies alphabetically at the bottom
+player_list_sorted = sorted(MASTER_PLAYER_LIST, key=lambda p: (p['pos'] == 'Goalie', p['name']))
 
 # --- Select/Deselect All Buttons ---
 col1, col2, col3_spacer = st.columns([1, 1, 5])
