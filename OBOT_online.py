@@ -36,6 +36,7 @@ MASTER_PLAYER_LIST = [
     {'name': 'Brad Olinyk',      'skill': 3, 'pos': 'Forward'},
     {'name': 'Steve McFarlane',  'skill': 8, 'pos': 'Forward'},
     {'name': 'Wayne Ellis',      'skill': 1, 'pos': 'Defence'},
+    {'name': 'Daryl Irvine',     'skill': 2, 'pos': 'Forward'},
     {'name': 'Kevin Falk',       'skill': 1, 'pos': 'Goalie'},
     {'name': 'Donnie McLean',    'skill': 1, 'pos': 'Goalie'},
     {'name': 'Chris Saley',      'skill': 1, 'pos': 'Goalie'}
