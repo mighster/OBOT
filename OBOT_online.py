@@ -66,7 +66,7 @@ def format_team_output(team_name, team_list):
         output += f"  - {player['name']}\n"
     return output + "\n"
 
-# --- BALANCING FUNCTION ---
+# --- BALANCING FUNCTION (FORWARD-FIRST) ---
 def generate_balanced_teams(present_players):
     by_name = {p['name']: p for p in present_players}
 
@@ -74,6 +74,18 @@ def generate_balanced_teams(present_players):
     team_B = []
     locked = set()
     remaining = list(present_players)
+
+    def team_skill(t):
+        return sum(p['skill'] for p in t)
+
+    def pos_list(t, pos):
+        return [p for p in t if p['pos'] == pos]
+
+    def pos_skill(t, pos):
+        return sum(p['skill'] for p in t if p['pos'] == pos)
+
+    def skater_count(t):
+        return sum(1 for p in t if p['pos'] != 'Goalie')
 
     # 1. Goalies (1 per team, split evenly based on present goalies)
     goalies = [p for p in remaining if p['pos'] == 'Goalie']
@@ -90,80 +102,120 @@ def generate_balanced_teams(present_players):
         if a in by_name and b in by_name:
             p1, p2 = by_name[a], by_name[b]
             target_list = team_A if pair_target_team == 'A' else team_B
-            
+
             for p in (p1, p2):
                 if p in remaining:
                     target_list.append(p)
                     remaining.remove(p)
                     locked.add(p['name'])
-            
+
             pair_target_team = 'B' if pair_target_team == 'A' else 'A'
 
-    # Target roster split for remaining skaters
-    n_skaters = len(remaining)
-    target_A_count = max(n_skaters // 2, len([p for p in team_A if p['pos'] != 'Goalie']))
-    target_B_count = n_skaters - target_A_count
+    # 3. Balance FORWARDS first (equal forward count, then equalize forward skill)
+    forwards = sorted([p for p in remaining if p['pos'] == 'Forward'], key=lambda p: p['skill'], reverse=True)
+    locked_fwd_A = len(pos_list(team_A, 'Forward'))
+    locked_fwd_B = len(pos_list(team_B, 'Forward'))
+    total_fwd = len(forwards) + locked_fwd_A + locked_fwd_B
+    target_fwd_A = max(total_fwd // 2, locked_fwd_A)
+    target_fwd_B = max(total_fwd - target_fwd_A, locked_fwd_B)
 
-    def team_skill(t):
-        return sum(p['skill'] for p in t)
-
-    def count_pos(t, pos):
-        return sum(1 for p in t if p['pos'] == pos)
-
-    # 3. Greedy Draft with Positional Balancing
-    skaters = sorted(remaining, key=lambda p: p['skill'], reverse=True)
-    
-    for p in skaters:
-        skaters_A = len([x for x in team_A if x['pos'] != 'Goalie'])
-        skaters_B = len([x for x in team_B if x['pos'] != 'Goalie'])
-
-        if skaters_A < target_A_count and skaters_B < target_B_count:
-            # If position imbalance is high, prioritize position over pure skill
-            def_A, def_B = count_pos(team_A, 'Defence'), count_pos(team_B, 'Defence')
-            
-            if p['pos'] == 'Defence' and def_A != def_B:
-                if def_A < def_B:
-                    team_A.append(p)
-                else:
-                    team_B.append(p)
+    # Adjust if a locked pair already pushed one side above half
+    if locked_fwd_A + locked_fwd_B + len(forwards) == total_fwd:
+        if target_fwd_A + target_fwd_B > total_fwd:
+            if locked_fwd_A > total_fwd - locked_fwd_A:
+                target_fwd_A = locked_fwd_A
+                target_fwd_B = total_fwd - target_fwd_A
             else:
-                # Fallback to lower overall skill team
-                if team_skill(team_A) <= team_skill(team_B):
-                    team_A.append(p)
-                else:
-                    team_B.append(p)
-        elif skaters_A < target_A_count:
-            team_A.append(p)
-        else:
-            team_B.append(p)
+                target_fwd_B = locked_fwd_B
+                target_fwd_A = total_fwd - target_fwd_B
 
-    # 4. Swap Pass (Optimizes Skill & Maintains Defence Balance)
+    for f in forwards:
+        fwd_A = len(pos_list(team_A, 'Forward'))
+        fwd_B = len(pos_list(team_B, 'Forward'))
+
+        if fwd_A < target_fwd_A and fwd_B < target_fwd_B:
+            fwd_skill_A = pos_skill(team_A, 'Forward')
+            fwd_skill_B = pos_skill(team_B, 'Forward')
+            if fwd_skill_A <= fwd_skill_B:
+                team_A.append(f)
+            else:
+                team_B.append(f)
+        elif fwd_A < target_fwd_A:
+            team_A.append(f)
+        else:
+            team_B.append(f)
+        remaining.remove(f)
+
+    # Swap pass strictly among unlocked Forwards to equalize Forward skill
+    improved = True
+    while improved:
+        improved = False
+        best = None
+        cur_fwd_diff = abs(pos_skill(team_A, 'Forward') - pos_skill(team_B, 'Forward'))
+
+        for i, pa in enumerate(team_A):
+            if pa['pos'] != 'Forward' or pa['name'] in locked:
+                continue
+            for j, pb in enumerate(team_B):
+                if pb['pos'] != 'Forward' or pb['name'] in locked:
+                    continue
+
+                new_fwd_A = pos_skill(team_A, 'Forward') - pa['skill'] + pb['skill']
+                new_fwd_B = pos_skill(team_B, 'Forward') - pb['skill'] + pa['skill']
+                new_fwd_diff = abs(new_fwd_A - new_fwd_B)
+
+                if new_fwd_diff < cur_fwd_diff:
+                    if best is None or new_fwd_diff < best[0]:
+                        best = (new_fwd_diff, i, j)
+
+        if best:
+            _, i, j = best
+            team_A[i], team_B[j] = team_B[j], team_A[i]
+            improved = True
+
+    # 4. Balance DEFENCE next (equalize total skater count and overall team skill)
+    defences = sorted([p for p in remaining if p['pos'] == 'Defence'], key=lambda p: p['skill'], reverse=True)
+    n_skaters = len([p for p in present_players if p['pos'] != 'Goalie'])
+    target_skaters_A = max(n_skaters // 2, skater_count(team_A))
+    target_skaters_B = n_skaters - target_skaters_A
+    if target_skaters_B < skater_count(team_B):
+        target_skaters_B = skater_count(team_B)
+        target_skaters_A = n_skaters - target_skaters_B
+
+    for d in defences:
+        s_A = skater_count(team_A)
+        s_B = skater_count(team_B)
+
+        if s_A < target_skaters_A and s_B < target_skaters_B:
+            if team_skill(team_A) <= team_skill(team_B):
+                team_A.append(d)
+            else:
+                team_B.append(d)
+        elif s_A < target_skaters_A:
+            team_A.append(d)
+        else:
+            team_B.append(d)
+        remaining.remove(d)
+
+    # Swap pass strictly among unlocked Defence to equalize overall team skill
     improved = True
     while improved:
         improved = False
         best = None
         cur_diff = abs(team_skill(team_A) - team_skill(team_B))
-        cur_def_diff = abs(count_pos(team_A, 'Defence') - count_pos(team_B, 'Defence'))
 
         for i, pa in enumerate(team_A):
-            if pa['name'] in locked or pa['pos'] == 'Goalie':
+            if pa['pos'] != 'Defence' or pa['name'] in locked:
                 continue
             for j, pb in enumerate(team_B):
-                if pb['name'] in locked or pb['pos'] == 'Goalie':
+                if pb['pos'] != 'Defence' or pb['name'] in locked:
                     continue
 
-                # Calculate new skill difference after swap
                 new_skill_A = team_skill(team_A) - pa['skill'] + pb['skill']
                 new_skill_B = team_skill(team_B) - pb['skill'] + pa['skill']
                 new_diff = abs(new_skill_A - new_skill_B)
 
-                # Calculate new Defence difference after swap
-                def_A_swap = count_pos(team_A, 'Defence') - (1 if pa['pos'] == 'Defence' else 0) + (1 if pb['pos'] == 'Defence' else 0)
-                def_B_swap = count_pos(team_B, 'Defence') - (1 if pb['pos'] == 'Defence' else 0) + (1 if pa['pos'] == 'Defence' else 0)
-                new_def_diff = abs(def_A_swap - def_B_swap)
-
-                # Only swap if skill improves and Defence balance is preserved or improved
-                if new_def_diff <= cur_def_diff and new_diff < cur_diff:
+                if new_diff < cur_diff:
                     if best is None or new_diff < best[0]:
                         best = (new_diff, i, j)
 
